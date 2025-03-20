@@ -1,0 +1,199 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  role          UserRole  @default(CLIENT)
+  isActive      Boolean   @default(true)
+
+  accounts Account[]
+  sessions Session[]
+
+  clientProfile   ClientProfile?
+  employeeProfile EmployeeProfile?
+
+  // Case relations
+  createdCases   Case[]        @relation("CreatedBy")
+  assignedCases  Case[]        @relation("AssignedTo")
+  caseHistory    CaseHistory[]
+  documents      Document[]
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+  CLIENT
+}
+
+model ClientProfile {
+  id            String  @id @default(cuid())
+  companyName   String
+  contactPerson String
+  phoneNumber   String
+  country       String
+  userId        String  @unique
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cases         Case[]
+}
+
+model EmployeeProfile {
+  id         String @id @default(cuid())
+  department String
+  position   String
+  userId     String @unique
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CaseType {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String
+  isActive    Boolean @default(true)
+  cases       Case[]
+}
+
+model Case {
+  id                 String          @id @default(cuid())
+  caseNumber         String          @unique @default(cuid())
+  title              String
+  description        String
+  status            CaseStatus      @default(PENDING)
+  priority          CasePriority    @default(MEDIUM)
+  location          String
+  medicalHistory    String?
+  currentMedications String?
+  symptoms          String
+  requiredAssistance String
+
+  // Relations
+  caseTypeId   String
+  caseType     CaseType        @relation(fields: [caseTypeId], references: [id])
+  clientId     String
+  client       ClientProfile   @relation(fields: [clientId], references: [id])
+  createdById  String
+  createdBy    User           @relation("CreatedBy", fields: [createdById], references: [id])
+  assignedToId String?
+  assignedTo   User?          @relation("AssignedTo", fields: [assignedToId], references: [id])
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Related records
+  history    CaseHistory[]
+  documents  Document[]
+  providers  CaseProvider[]
+
+  @@index([createdById])
+  @@index([clientId])
+  @@index([assignedToId])
+  @@index([caseTypeId])
+}
+
+enum CaseStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum CasePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model CaseHistory {
+  id          String      @id @default(cuid())
+  caseId      String
+  case        Case        @relation(fields: [caseId], references: [id])
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  action      String
+  description String
+  createdAt   DateTime    @default(now())
+
+  @@index([caseId])
+  @@index([userId])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  description String?
+  url         String
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id])
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  uploadedAt   DateTime @default(now())
+
+  @@index([caseId])
+  @@index([uploadedById])
+}
+
+model Provider {
+  id          String         @id @default(cuid())
+  name        String
+  type        String
+  isActive    Boolean        @default(true)
+  cases       CaseProvider[]
+}
+
+model CaseProvider {
+  id         String   @id @default(cuid())
+  caseId     String
+  case       Case     @relation(fields: [caseId], references: [id])
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id])
+  status     String
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([caseId])
+  @@index([providerId])
+} 
