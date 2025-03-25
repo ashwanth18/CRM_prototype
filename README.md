@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GMCA2 Modern Web Application
 
 ## Getting Started
 
-First, run the development server:
+There are two ways to run this application:
 
+### Option 1: Using Docker (Recommended)
+
+1. Make sure you have Docker and Docker Compose installed on your system
+2. Clone this repository
+3. Start the application:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker-compose up
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This will:
+- Start a PostgreSQL database
+- Run database migrations
+- Seed the database
+- Start the Next.js development server
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The application will be available at [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Option 2: Local Development
 
-## Learn More
+1. Make sure you have:
+   - Node.js installed (version specified in package.json)
+   - PostgreSQL installed and running
+   - Copy `.env.example` to `.env` and update the variables
 
-To learn more about Next.js, take a look at the following resources:
+2. Install dependencies:
+```bash
+npm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Set up the database:
+```bash
+npx prisma generate
+npx prisma migrate deploy
+npx prisma db seed
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Run the development server:
+```bash
+npm run dev
+```
 
-## Deploy on Vercel
+The application will be available at [http://localhost:3000](http://localhost:3000)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Login Credentials
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+After setup, you can use any of these pre-seeded user accounts to login:
+
+### Admin User
+- Email: admin@example.com
+- Password: admin123
+- Role: Administrator
+
+### Employee User
+- Email: coordinator@gmca.com
+- Password: employee123
+- Role: Case Coordinator
+
+### Client Users
+1. Insurance Company Representative
+   - Email: contact@insuranceco.com
+   - Password: client123
+   - Company: Global Insurance Co.
+
+2. Hospital Representative
+   - Email: contact@hospital.com
+   - Password: client123
+   - Company: City General Hospital
+
